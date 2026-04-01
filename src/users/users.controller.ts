@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,7 +17,9 @@ import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtGuard } from 'src/auth/jwt-auth.guard';
+import { Wish } from 'src/wishes/entities/wish.entity';
 
+@UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -26,20 +29,14 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @UseGuards(JwtGuard)
   @Get('me')
   findOwn(@Req() req): Promise<User> {
-    return this.usersService.findOwn(req.user.id);
+    return this.usersService.findOwn(+req.user.id);
   }
 
   @Get(':username')
-  findOne(@Param('username') username: string): Promise<User> {
-    return this.usersService.findOne(username);
+  findByUsername(@Param('username') username: string): Promise<User> {
+    return this.usersService.findByUsername(username);
   }
 
   @Post('find')
@@ -52,21 +49,21 @@ export class UsersController {
     @Req() req,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UpdateResult> {
-    return this.usersService.updateOwn(req.user.userId, updateUserDto);
+    return this.usersService.updateOwn(+req.user.id, updateUserDto);
   }
 
   @Get('me/wishes')
-  findOwnWish(@Req() req): Promise<User[]> {
-    return this.usersService.findOwnWish(req.user.userId);
+  findOwnWish(@Req() req): Promise<Wish[]> {
+    return this.usersService.findOwnWish(+req.user.id);
   }
 
-  @Get(':username')
-  findOneWish(@Param('username') username: string): Promise<User[]> {
+  @Get(':username/wishes')
+  findOneWish(@Param('username') username: string): Promise<Wish[]> {
     return this.usersService.findOneWish(username);
   }
 
   @Delete('me')
   remove(@Req() req): Promise<DeleteResult> {
-    return this.usersService.remove(req.user.userId);
+    return this.usersService.remove(+req.user.id);
   }
 }

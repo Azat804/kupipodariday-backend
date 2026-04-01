@@ -9,11 +9,12 @@ import {
   ManyToOne,
   JoinTable,
 } from 'typeorm';
-import { Contains, Length, IsEmail, IsUrl } from 'class-validator';
+import { Contains, Length, IsEmail, IsUrl, IsString } from 'class-validator';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { Offer } from 'src/offers/entities/offer.entity';
 import { User } from 'src/users/entities/user.entity';
 
+@Entity()
 export class Wishlist {
   @PrimaryGeneratedColumn()
   id: number;
@@ -28,11 +29,13 @@ export class Wishlist {
     type: 'varchar',
     length: 250,
   })
-  @Length(1, 250)
+  @Length(0, 250)
+  @IsString()
   name: string;
 
   @Column()
   @IsUrl()
+  @IsString()
   image: string;
 
   @ManyToOne(() => Wish, (wish) => wish.owner)

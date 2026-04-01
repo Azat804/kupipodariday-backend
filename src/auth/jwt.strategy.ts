@@ -6,14 +6,9 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private configService: ConfigService,
-    private usersService: UsersService,
-  ) {
-    const jwtSecret = configService.get<string>('jwt_secret');
-    if (!jwtSecret) {
-      throw new Error('JWT secret is not defined');
-    }
+  constructor(private usersService: UsersService) {
+    const configService = new ConfigService();
+    const jwtSecret = configService.get<string>('JWT_SECRET');
     super({
       /* Указываем, что токен будет передаваться в заголовке Authorization в формате Bearer <token> */
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

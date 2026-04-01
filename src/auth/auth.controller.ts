@@ -3,8 +3,9 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './local.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
 
-@Controller('auth')
+@Controller('')
 export class AuthController {
   constructor(
     private usersService: UsersService,
@@ -23,9 +24,9 @@ export class AuthController {
   }
 
   @Post('signup')
-  async signup(@Body() createUserDto: CreateUserDto) {
+  async signup(@Body() signupUserDto: SignupUserDto) {
     /* При регистрации создаём пользователя и генерируем для него токен */
-    const user = await this.usersService.create(createUserDto);
+    const user = await this.usersService.create(signupUserDto);
 
     return this.authService.auth(user);
   }

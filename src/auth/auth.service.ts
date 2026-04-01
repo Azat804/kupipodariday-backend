@@ -4,7 +4,7 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +20,7 @@ export class AuthService {
   }
 
   async validatePassword(username: string, password: string) {
-    const user = await this.usersService.findOne(username);
-
+    const user = await this.usersService.findByUsername(username, true);
     /* В идеальном случае пароль обязательно должен быть захэширован */
     if (user && (await bcrypt.compare(password, user.password))) {
       /* Исключаем пароль из результата */

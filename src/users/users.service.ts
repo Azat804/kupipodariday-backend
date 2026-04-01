@@ -2,17 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  QueryFailedError,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
+import { Wish } from 'src/wishes/entities/wish.entity';
+import { UserAlreadyExistsEception } from './exceptions/user-already-exists.exception';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const { username, about, avatar, email, password } = createUserDto;
     const hash = await bcrypt.hash(password, 10);
     const user = await this.userRepository.create({
@@ -22,12 +29,13 @@ export class UsersService {
       email,
       password: hash,
     });
-
+    if (
+      (await this.findByUsername(username)) ||
+      (await this.findByEmail(email))
+    ) {
+      throw new UserAlreadyExistsEception();
+    }
     return this.userRepository.save(user);
-  }
-
-  findAll() {
-    return `This action returns all users`;
   }
 
   findOwn(id: number): Promise<User> {
@@ -45,16 +53,51 @@ export class UsersService {
     });
   }
 
-  findOne(username: string): Promise<User> {
+  findByUsername(username: string, isSelectCredentials = false): Promise<User> {
     return this.userRepository.findOne({
       where: { username },
+      select: {
+        email: isSelectCredentials,
+        password: isSelectCredentials,
+        username: true,
+        id: true,
+        about: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
-  findMany(findUsersDto: FindUsersDto): Promise<User[]> {
-    const { email, username } = findUsersDto;
-    return this.userRepository.find({
-      where: [{ email }, { username }],
+  findByEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: {
+        email: true,
+        password: true,
+        username: true,
+        id: true,
+        about: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async findMany(findUsersDto: FindUsersDto): Promise<User[]> {
+    const { query } = findUsersDto;
+    return await this.userRepository.find({
+      where: [{ email: query }, { username: query }],
+      select: {
+        email: true,
+        username: true,
+        id: true,
+        about: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -62,30 +105,71 @@ export class UsersService {
     id: number,
     updateUserDto: UpdateUserDto,
   ): Promise<UpdateResult> {
-    return await this.userRepository.update({ id }, updateUserDto);
+    const { username, about, avatar, email, password } = updateUserDto;
+    if (
+      (username && (await this.findByUsername(username))) ||
+      (email && (await this.findByEmail(email)))
+    ) {
+      throw new UserAlreadyExistsEception();
+    }
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      return await this.userRepository.update(
+        { id },
+        {
+          username,
+          about,
+          avatar,
+          email,
+          password: hash,
+        },
+      );
+    }
+    return await this.userRepository.update(
+      { id },
+      {
+        username,
+        about,
+        avatar,
+        email,
+      },
+    );
   }
 
-  findOwnWish(id: number): Promise<User[]> {
-    return this.userRepository.find({
+  async findOwnWish(id: number): Promise<Wish[]> {
+    const user = await this.userRepository.findOne({
       where: { id },
       select: {},
       relations: {
-        wishes: true,
+        wishes: {
+          owner: true,
+          offers: {
+            item: true,
+            user: {
+              wishes: true,
+              offers: true,
+              wishlists: { owner: true, items: true },
+            },
+          },
+          wishlists: true,
+        },
       },
     });
+    return user.wishes;
   }
 
-  findOneWish(username: string): Promise<User[]> {
-    return this.userRepository.find({
+  async findOneWish(username: string): Promise<Wish[]> {
+    const user = await this.userRepository.findOne({
       where: { username },
       select: {},
       relations: {
-        wishes: true,
+        wishes: { offers: true, wishlists: true },
       },
     });
+    return user.wishes;
   }
 
-  remove(id: number): Promise<DeleteResult> {
-    return this.userRepository.delete({ id });
+  async remove(id: number): Promise<DeleteResult> {
+    return await this.userRepository.delete({ id });
   }
 }

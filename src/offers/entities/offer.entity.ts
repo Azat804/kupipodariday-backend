@@ -9,9 +9,19 @@ import {
   JoinTable,
   ManyToOne,
 } from 'typeorm';
-import { Contains, Length, IsEmail } from 'class-validator';
+import {
+  Contains,
+  Length,
+  IsEmail,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
+import { ColumnNumericTransformer } from 'src/utils/column-numeric-transformer';
+
+@Entity()
 export class Offer {
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,21 +32,25 @@ export class Offer {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @IsNumber()
   @Column({
     type: 'decimal',
+    precision: 8,
     scale: 2,
+    transformer: new ColumnNumericTransformer(),
   })
   amount: number;
 
+  @IsOptional()
+  @IsBoolean()
   @Column({
     type: 'boolean',
     default: false,
   })
   hidden: boolean;
 
-  @ManyToMany(() => User, (user) => user.offers)
-  @JoinTable()
-  user: User[];
+  @ManyToOne(() => User, (user) => user.offers)
+  user: User;
 
   @ManyToOne(() => Wish, (item) => item.offers)
   item: Wish;

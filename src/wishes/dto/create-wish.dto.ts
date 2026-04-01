@@ -5,4 +5,7 @@ export class CreateWishDto extends OmitType(Wish, [
   'id',
   'createdAt',
   'updatedAt',
+  'owner',
+  'offers',
+  'wishlists',
 ] as const) {}

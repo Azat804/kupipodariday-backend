@@ -37,7 +37,7 @@ export class User {
     unique: true,
   })
   @IsString()
-  @Length(2, 30)
+  @Length(1, 64)
   username: string;
 
   @Column({
@@ -45,17 +45,18 @@ export class User {
     length: 200,
     default: 'Пока ничего не рассказал о себе',
   })
-  @IsString()
   @IsOptional()
-  @Length(2, 200)
+  @IsString()
+  @Length(0, 200)
   about: string;
 
   @Column({
     type: 'varchar',
     default: 'https://i.pravatar.cc/300',
   })
-  @IsUrl()
   @IsOptional()
+  @IsString()
+  @IsUrl()
   avatar: string;
 
   @Column({
@@ -64,6 +65,7 @@ export class User {
     select: false,
   })
   @IsEmail()
+  @IsString()
   email: string;
 
   @Column({
@@ -75,7 +77,7 @@ export class User {
   @OneToMany(() => Wish, (wish) => wish.owner)
   wishes: Wish[];
 
-  @ManyToMany(() => Offer, (offer) => offer.user)
+  @OneToMany(() => Offer, (offer) => offer.user)
   offers: Offer[];
 
   @OneToMany(() => Wishlist, (wishlist) => wishlist.owner)
