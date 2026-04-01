@@ -7,7 +7,7 @@ import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wishlist } from './entities/wishlist.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class WishlistsService {
@@ -15,7 +15,10 @@ export class WishlistsService {
     @InjectRepository(Wishlist)
     private readonly wishlistRepository: Repository<Wishlist>,
   ) {}
-  async create(ownerId: number, createWishlistDto: CreateWishlistDto) {
+  async create(
+    ownerId: number,
+    createWishlistDto: CreateWishlistDto,
+  ): Promise<Wishlist> {
     const { name, image, itemsId } = createWishlistDto;
     const wishlist = await this.wishlistRepository.create({
       name,
@@ -25,11 +28,11 @@ export class WishlistsService {
         id: itemId,
       })),
     });
-    return this.wishlistRepository.save(wishlist);
+    return await this.wishlistRepository.save(wishlist);
   }
 
-  findAll(): Promise<Wishlist[]> {
-    return this.wishlistRepository.find({
+  async findAll(): Promise<Wishlist[]> {
+    return await this.wishlistRepository.find({
       relations: {
         owner: true,
         items: true,
@@ -63,7 +66,7 @@ export class WishlistsService {
     if (!(await this.isOwner(userId, wishlistId))) {
       throw new ForbiddenException();
     }
-    return this.updateOne(wishlistId, updateWishlistDto);
+    return await this.updateOne(wishlistId, updateWishlistDto);
   }
 
   async updateOne(
@@ -71,17 +74,14 @@ export class WishlistsService {
     updateWishlistDto: UpdateWishlistDto,
   ): Promise<Wishlist> {
     const { name, image, itemsId } = updateWishlistDto;
-    console.log(itemsId);
     const wishlist = await this.findOne(id);
-    await this.wishlistRepository.update(
-      { id },
-      {
-        name,
-        image,
-        items: itemsId?.map((itemId) => ({ id: itemId })),
-      },
-    );
-    return wishlist;
+    const newWishlist = await this.wishlistRepository.create({
+      ...wishlist,
+      name,
+      image,
+      items: itemsId?.map((itemId) => ({ id: itemId })),
+    });
+    return await this.wishlistRepository.save(newWishlist);
   }
 
   async checkAndRemove(userId: number, wishlistId: number): Promise<Wishlist> {
@@ -89,15 +89,15 @@ export class WishlistsService {
     if (!wishlist) {
       throw new NotFoundException();
     }
-    if (!this.isOwner(userId, wishlistId)) {
+    if (!(await this.isOwner(userId, wishlistId))) {
       throw new ForbiddenException();
     }
-    return this.remove(wishlistId);
+    return await this.remove(wishlistId);
   }
 
   async remove(id: number): Promise<Wishlist> {
     const wishlist = await this.findOne(id);
-    this.wishlistRepository.delete({ id });
+    await this.wishlistRepository.delete({ id });
     return wishlist;
   }
 }

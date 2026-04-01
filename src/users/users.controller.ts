@@ -8,14 +8,12 @@ import {
   Delete,
   Req,
   UseGuards,
-  HttpCode,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
-import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtGuard } from 'src/auth/jwt-auth.guard';
 import { Wish } from 'src/wishes/entities/wish.entity';
 
@@ -25,7 +23,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
   }
 
@@ -45,10 +43,7 @@ export class UsersController {
   }
 
   @Patch('me')
-  updateOwn(
-    @Req() req,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UpdateResult> {
+  updateOwn(@Req() req, @Body() updateUserDto: UpdateUserDto): Promise<User> {
     return this.usersService.updateOwn(+req.user.id, updateUserDto);
   }
 
@@ -63,7 +58,7 @@ export class UsersController {
   }
 
   @Delete('me')
-  remove(@Req() req): Promise<DeleteResult> {
+  remove(@Req() req): Promise<User> {
     return this.usersService.remove(+req.user.id);
   }
 }

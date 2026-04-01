@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -8,7 +7,7 @@ import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wish } from './entities/wish.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { OfferAlreadyExistsException } from './exceptions/offer-already-exists.exception';
 import { RaisedChangeException } from './exceptions/raised-change.exception';
 
@@ -17,7 +16,7 @@ export class WishesService {
   constructor(
     @InjectRepository(Wish) private readonly wishRepository: Repository<Wish>,
   ) {}
-  async create(ownerId: number, createWishDto: CreateWishDto) {
+  async create(ownerId: number, createWishDto: CreateWishDto): Promise<Wish> {
     const wish = await this.wishRepository.create({
       ...createWishDto,
       raised: 0,

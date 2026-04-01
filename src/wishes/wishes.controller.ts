@@ -14,7 +14,6 @@ import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { JwtGuard } from 'src/auth/jwt-auth.guard';
 import { Wish } from './entities/wish.entity';
-import { UpdateResult } from 'typeorm';
 
 @UseGuards(JwtGuard)
 @Controller('wishes')
@@ -22,7 +21,7 @@ export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
 
   @Post('')
-  create(@Req() req, @Body() createWishDto: CreateWishDto) {
+  create(@Req() req, @Body() createWishDto: CreateWishDto): Promise<Wish> {
     return this.wishesService.create(+req.user.id, createWishDto);
   }
 
@@ -56,7 +55,7 @@ export class WishesController {
   }
 
   @Post(':id/copy')
-  copy(@Req() req, @Param('id') wishId: string) {
+  copy(@Req() req, @Param('id') wishId: string): Promise<Wish> {
     return this.wishesService.copy(+req.user.id, +wishId);
   }
 }

@@ -2,12 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  DeleteResult,
-  QueryFailedError,
-  Repository,
-  UpdateResult,
-} from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { FindUsersDto } from './dto/find-users.dto';
 import * as bcrypt from 'bcrypt';
@@ -35,11 +30,11 @@ export class UsersService {
     ) {
       throw new UserAlreadyExistsEception();
     }
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
 
-  findOwn(id: number): Promise<User> {
-    return this.userRepository.findOne({
+  async findOwn(id: number): Promise<User> {
+    return await this.userRepository.findOne({
       where: { id },
       select: {
         email: true,
@@ -53,8 +48,11 @@ export class UsersService {
     });
   }
 
-  findByUsername(username: string, isSelectCredentials = false): Promise<User> {
-    return this.userRepository.findOne({
+  async findByUsername(
+    username: string,
+    isSelectCredentials = false,
+  ): Promise<User> {
+    return await this.userRepository.findOne({
       where: { username },
       select: {
         email: isSelectCredentials,
@@ -69,8 +67,8 @@ export class UsersService {
     });
   }
 
-  findByEmail(email: string): Promise<User> {
-    return this.userRepository.findOne({
+  async findByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({
       where: { email },
       select: {
         email: true,
@@ -101,10 +99,7 @@ export class UsersService {
     });
   }
 
-  async updateOwn(
-    id: number,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UpdateResult> {
+  async updateOwn(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const { username, about, avatar, email, password } = updateUserDto;
     if (
       (username && (await this.findByUsername(username))) ||
@@ -114,7 +109,7 @@ export class UsersService {
     }
     if (password) {
       const hash = await bcrypt.hash(password, 10);
-      return await this.userRepository.update(
+      await this.userRepository.update(
         { id },
         {
           username,
@@ -125,7 +120,7 @@ export class UsersService {
         },
       );
     }
-    return await this.userRepository.update(
+    await this.userRepository.update(
       { id },
       {
         username,
@@ -134,6 +129,7 @@ export class UsersService {
         email,
       },
     );
+    return await this.findOwn(id);
   }
 
   async findOwnWish(id: number): Promise<Wish[]> {
@@ -169,7 +165,9 @@ export class UsersService {
     return user.wishes;
   }
 
-  async remove(id: number): Promise<DeleteResult> {
-    return await this.userRepository.delete({ id });
+  async remove(id: number): Promise<User> {
+    const user = await this.findOwn(id);
+    await this.userRepository.delete({ id });
+    return user;
   }
 }

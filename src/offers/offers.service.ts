@@ -1,15 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOfferDto } from './dto/create-offer.dto';
-import { UpdateOfferDto } from './dto/update-offer.dto';
 import { Offer } from './entities/offer.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOfferDto } from './dto/find-offer.dto';
-import { Wish } from 'src/wishes/entities/wish.entity';
 import { UsersService } from 'src/users/users.service';
 import { WishesService } from 'src/wishes/wishes.service';
 import { AddOfferForOwnWishException } from './exceptions/add-offer-for-own-wish.exception';
@@ -40,7 +34,7 @@ export class OffersService {
       await this.wishesService.updateOne(itemId, {
         raised: targetWish.raised + amount,
       });
-      return this.create(userId, itemId, amount, createOfferDto);
+      return await this.create(userId, itemId, amount, createOfferDto);
     }
   }
 
@@ -56,7 +50,7 @@ export class OffersService {
       user: { id: userId },
       item: { id: itemId, raised },
     });
-    return this.offerRepository.save(offer);
+    return await this.offerRepository.save(offer);
   }
 
   async findAll(): Promise<FindOfferDto[]> {

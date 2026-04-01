@@ -4,14 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
   ManyToMany,
   ManyToOne,
   JoinTable,
 } from 'typeorm';
-import { Contains, Length, IsEmail, IsUrl, IsString } from 'class-validator';
+import { Length, IsUrl, IsString } from 'class-validator';
 import { Wish } from 'src/wishes/entities/wish.entity';
-import { Offer } from 'src/offers/entities/offer.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Entity()
@@ -38,7 +36,7 @@ export class Wishlist {
   @IsString()
   image: string;
 
-  @ManyToOne(() => Wish, (wish) => wish.owner)
+  @ManyToOne(() => User, (owner) => owner.wishlists)
   owner: User;
 
   @ManyToMany(() => Wish, (item) => item.wishlists)

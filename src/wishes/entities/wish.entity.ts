@@ -7,13 +7,9 @@ import {
   ManyToOne,
   ManyToMany,
   OneToMany,
-  JoinTable,
-  AfterLoad,
 } from 'typeorm';
 import {
-  Contains,
   Length,
-  IsEmail,
   IsUrl,
   IsOptional,
   IsNumber,

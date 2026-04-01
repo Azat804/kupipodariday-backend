@@ -14,7 +14,6 @@ import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { JwtGuard } from 'src/auth/jwt-auth.guard';
 import { Wishlist } from './entities/wishlist.entity';
-import { UpdateResult } from 'typeorm';
 
 @UseGuards(JwtGuard)
 @Controller('wishlistlists')
@@ -22,7 +21,10 @@ export class WishlistsController {
   constructor(private readonly wishlistsService: WishlistsService) {}
 
   @Post()
-  create(@Req() req, @Body() createWishlistDto: CreateWishlistDto) {
+  create(
+    @Req() req,
+    @Body() createWishlistDto: CreateWishlistDto,
+  ): Promise<Wishlist> {
     return this.wishlistsService.create(+req.user.id, createWishlistDto);
   }
 

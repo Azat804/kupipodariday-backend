@@ -1,7 +1,12 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
 import { Column } from 'typeorm';
-import { IsEmail, IsOptional, IsString, IsUrl, Length } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @Column({
@@ -46,5 +51,6 @@ export class UpdateUserDto {
   })
   @IsOptional()
   @IsString()
+  @MinLength(2)
   password: string;
 }

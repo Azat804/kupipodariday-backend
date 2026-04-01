@@ -4,19 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
   ManyToOne,
 } from 'typeorm';
-import {
-  Contains,
-  Length,
-  IsEmail,
-  IsBoolean,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ColumnNumericTransformer } from 'src/utils/column-numeric-transformer';
