@@ -15,11 +15,11 @@ import { UpdateWishDto } from './dto/update-wish.dto';
 import { JwtGuard } from 'src/auth/jwt-auth.guard';
 import { Wish } from './entities/wish.entity';
 
-@UseGuards(JwtGuard)
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
 
+  @UseGuards(JwtGuard)
   @Post('')
   create(@Req() req, @Body() createWishDto: CreateWishDto): Promise<Wish> {
     return this.wishesService.create(+req.user.id, createWishDto);
@@ -35,11 +35,13 @@ export class WishesController {
     return this.wishesService.findTop();
   }
 
+  @UseGuards(JwtGuard)
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Wish> {
     return this.wishesService.findOne(+id);
   }
 
+  @UseGuards(JwtGuard)
   @Patch(':id')
   updateOne(
     @Param('id') id: string,
@@ -49,11 +51,13 @@ export class WishesController {
     return this.wishesService.checkAndUpdate(+req.user.id, +id, updateWishDto);
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req): Promise<Wish> {
     return this.wishesService.checkAndRemove(+req.user.id, +id);
   }
 
+  @UseGuards(JwtGuard)
   @Post(':id/copy')
   copy(@Req() req, @Param('id') wishId: string): Promise<Wish> {
     return this.wishesService.copy(+req.user.id, +wishId);

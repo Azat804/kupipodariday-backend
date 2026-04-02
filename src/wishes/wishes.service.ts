@@ -39,7 +39,7 @@ export class WishesService {
     const wishes = await this.wishRepository.find({
       relations: { owner: true, offers: true, wishlists: true },
       order: { copied: 'DESC' },
-      take: 1,
+      take: 10,
     });
     return wishes;
   }

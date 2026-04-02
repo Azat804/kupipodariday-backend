@@ -88,7 +88,6 @@ export class UsersService {
     return await this.userRepository.find({
       where: [{ email: query }, { username: query }],
       select: {
-        email: true,
         username: true,
         id: true,
         about: true,
